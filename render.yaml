@@ -3,5 +3,5 @@ services:
 name: iris-svm-api
 runtime: python
 buildCommand: pip install -r requirements.txt
-startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+startCommand: streamlit run app.py --server.address 0.0.0.0 --server.port $PORT
 healthCheckPath: /health
