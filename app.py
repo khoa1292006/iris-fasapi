@@ -3,222 +3,577 @@ import pandas as pd
 import joblib
 from pathlib import Path
 
-# =========================
-# CẤU HÌNH TRANG
-# =========================
+# =========================================================
+# CẤU HÌNH
+# =========================================================
 st.set_page_config(
     page_title="Iris SVM Classifier",
     page_icon="🌸",
-    layout="centered"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# =========================
-# ĐƯỜNG DẪN THƯ MỤC
-# =========================
+# =========================================================
+# ĐƯỜNG DẪN
+# =========================================================
 BASE_DIR = Path(__file__).resolve().parent
 
+MODEL_PATH = BASE_DIR / "svm_iris.pkl"
+HERO_PATH = BASE_DIR / "hero.png.jpg"
 
-# =========================
-# CSS GIAO DIỆN
-# =========================
+# =========================================================
+# CSS
+# =========================================================
 st.markdown("""
 <style>
 
+/* =========================
+   NỀN TOÀN TRANG
+========================= */
+
 .stApp {
-    background: linear-gradient(
-        135deg,
-        #ffd6e7,
-        #ffeaf3,
-        #ffc1dc
-    );
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(255, 182, 213, 0.45),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 90% 20%,
+            rgba(255, 214, 231, 0.55),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            #fff5fa 0%,
+            #ffeaf3 45%,
+            #fff8fb 100%
+        );
 }
+
 
 /* =========================
-   HOA TRANG TRÍ HAI BÊN
-   ========================= */
+   ẨN HEADER STREAMLIT
+========================= */
 
-.flower-left,
-.flower-right {
-    position: fixed;
-    top: 120px;
-    z-index: 999;
-    font-size: 55px;
-    line-height: 1.7;
+header {
+    background: transparent !important;
+}
+
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+
+/* =========================
+   CONTAINER
+========================= */
+
+.block-container {
+    max-width: 1200px;
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+
+/* =========================
+   TITLE
+========================= */
+
+.main-title {
     text-align: center;
-    pointer-events: none;
-}
+    font-size: 52px;
+    font-weight: 800;
 
-.flower-left {
-    left: 15px;
-}
+    background: linear-gradient(
+        90deg,
+        #c2185b,
+        #e91e63,
+        #ad1457
+    );
 
-.flower-right {
-    right: 15px;
-}
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 
-
-/* Tiêu đề */
-.title {
-    text-align: center;
-    font-size: 42px;
-    font-weight: 700;
     margin-bottom: 5px;
-    color: #c2185b;
 }
 
-/* Phụ đề */
 .subtitle {
     text-align: center;
+    color: #87506c;
     font-size: 18px;
-    color: #8e4164;
+    margin-bottom: 35px;
+}
+
+
+/* =========================
+   HERO CARD
+========================= */
+
+.hero-card {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255,255,255,0.8);
+
+    border-radius: 28px;
+
+    padding: 25px;
+
+    box-shadow:
+        0 15px 45px rgba(194,24,91,0.12);
+
+    margin-bottom: 30px;
+}
+
+
+/* =========================
+   SECTION TITLE
+========================= */
+
+.section-title {
+    color: #c2185b;
+    font-size: 27px;
+    font-weight: 750;
+
+    margin-top: 15px;
+    margin-bottom: 18px;
+}
+
+
+/* =========================
+   INFO CARD
+========================= */
+
+.info-card {
+    background: rgba(255,255,255,0.78);
+
+    border-radius: 22px;
+
+    padding: 25px 30px;
+
+    border: 1px solid rgba(255,255,255,0.9);
+
+    box-shadow:
+        0 10px 30px rgba(194,24,91,0.08);
+
     margin-bottom: 25px;
 }
 
-/* Ảnh hero */
-.hero-box {
+.info-card h3 {
+    color: #c2185b;
+    margin-bottom: 12px;
+}
+
+.info-card p {
+    color: #684458;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+
+/* =========================
+   FEATURE BOX
+========================= */
+
+.feature {
+    background: linear-gradient(
+        135deg,
+        rgba(255,255,255,0.95),
+        rgba(255,240,247,0.9)
+    );
+
+    padding: 18px;
+
+    border-radius: 18px;
+
     text-align: center;
-    margin-bottom: 25px;
+
+    border: 1px solid #ffd1e3;
+
+    box-shadow:
+        0 6px 20px rgba(194,24,91,0.06);
+
+    margin-bottom: 10px;
 }
 
-/* Card */
-.card {
-    padding: 25px;
-    border-radius: 15px;
-    background-color: rgba(255, 255, 255, 0.88);
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(194, 24, 91, 0.15);
-}
-
-/* Kết quả */
-.result-box {
-    padding: 25px;
-    border-radius: 20px;
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.92);
-    margin-top: 25px;
-    box-shadow: 0 5px 20px rgba(194, 24, 91, 0.20);
-}
-
-/* Tên loài */
-.result-name {
+.feature-icon {
     font-size: 30px;
+}
+
+.feature-title {
     font-weight: 700;
     color: #c2185b;
+    margin-top: 5px;
+}
+
+.feature-text {
+    font-size: 14px;
+    color: #876074;
+}
+
+
+/* =========================
+   INPUT AREA
+========================= */
+
+.input-card {
+    background: rgba(255,255,255,0.82);
+
+    padding: 28px;
+
+    border-radius: 24px;
+
+    border: 1px solid rgba(255,255,255,0.95);
+
+    box-shadow:
+        0 12px 35px rgba(194,24,91,0.10);
+
     margin-top: 15px;
 }
 
-/* Footer */
-.info {
-    text-align: center;
-    color: #8e4164;
-    font-size: 14px;
-    margin-top: 30px;
+
+/* =========================
+   INPUT LABEL
+========================= */
+
+label {
+    color: #6b3c55 !important;
+    font-weight: 600 !important;
 }
 
-/* Trên màn hình nhỏ thì ẩn hoa */
-@media (max-width: 900px) {
-    .flower-left,
-    .flower-right {
-        display: none;
+
+/* =========================
+   BUTTON
+========================= */
+
+.stButton > button {
+
+    width: 100%;
+
+    border-radius: 16px;
+
+    border: none;
+
+    padding: 15px 20px;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    color: white;
+
+    background: linear-gradient(
+        135deg,
+        #e91e63,
+        #c2185b
+    );
+
+    box-shadow:
+        0 8px 20px rgba(194,24,91,0.25);
+
+    transition: all 0.25s ease;
+}
+
+.stButton > button:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 12px 28px rgba(194,24,91,0.35);
+
+    background: linear-gradient(
+        135deg,
+        #ec407a,
+        #ad1457
+    );
+}
+
+
+/* =========================
+   RESULT
+========================= */
+
+.result-card {
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,0.95),
+            rgba(255,237,246,0.95)
+        );
+
+    border-radius: 28px;
+
+    padding: 30px;
+
+    margin-top: 30px;
+
+    border: 2px solid #ffd0e2;
+
+    box-shadow:
+        0 15px 40px rgba(194,24,91,0.14);
+
+    text-align: center;
+}
+
+.result-label {
+
+    font-size: 17px;
+
+    color: #8a5570;
+
+    margin-bottom: 5px;
+}
+
+.result-name {
+
+    font-size: 38px;
+
+    font-weight: 800;
+
+    color: #c2185b;
+
+    margin: 8px 0;
+}
+
+.result-description {
+
+    color: #77566a;
+
+    font-size: 16px;
+}
+
+
+/* =========================
+   BADGE
+========================= */
+
+.badge {
+
+    display: inline-block;
+
+    padding: 8px 18px;
+
+    border-radius: 30px;
+
+    background: #ffe0ed;
+
+    color: #c2185b;
+
+    font-weight: 700;
+
+    margin-top: 10px;
+}
+
+
+/* =========================
+   FOOTER
+========================= */
+
+.footer {
+
+    text-align: center;
+
+    color: #96657e;
+
+    font-size: 14px;
+
+    margin-top: 45px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid rgba(194,24,91,0.12);
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+    .main-title {
+        font-size: 36px;
     }
+
+    .subtitle {
+        font-size: 15px;
+    }
+
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 
-# =========================
-# HOA TRANG TRÍ HAI BÊN
-# =========================
-st.markdown("""
-<div class="flower-left">
-🌸<br>
-🌷<br>
-🌺<br>
-🌼
-</div>
-
-<div class="flower-right">
-🌺<br>
-🌼<br>
-🌷<br>
-🌸
-</div>
-""", unsafe_allow_html=True)
-
-
-# =========================
+# =========================================================
 # LOAD MODEL
-# =========================
-model = joblib.load(BASE_DIR / "svm_iris.pkl")
+# =========================================================
+
+try:
+
+    model = joblib.load(MODEL_PATH)
+
+except Exception as e:
+
+    st.error(f"❌ Không thể tải mô hình: {e}")
+    st.stop()
 
 
-# =========================
+# =========================================================
 # HEADER
-# =========================
+# =========================================================
+
 st.markdown(
-    '<div class="title">🌸 Iris SVM Classifier</div>',
+    """
+    <div class="main-title">
+        🌸 Iris SVM Classifier
+    </div>
+
+    <div class="subtitle">
+        Ứng dụng trí tuệ nhân tạo phân loại hoa Iris
+        bằng thuật toán Support Vector Machine
+    </div>
+    """,
     unsafe_allow_html=True
 )
 
+
+# =========================================================
+# HERO
+# =========================================================
+
 st.markdown(
-    '<div class="subtitle">'
-    'Ứng dụng phân loại hoa Iris sử dụng mô hình học máy SVM'
+    '<div class="hero-card">',
+    unsafe_allow_html=True
+)
+
+col1, col2 = st.columns([1.15, 1])
+
+with col1:
+
+    if HERO_PATH.exists():
+
+        st.image(
+            str(HERO_PATH),
+            use_container_width=True
+        )
+
+with col2:
+
+    st.markdown(
+        """
+        <div style="padding: 25px 10px;">
+
+        <h2 style="color:#c2185b;">
+        🌷 Nhận diện hoa Iris
+        </h2>
+
+        <p style="
+        color:#70465c;
+        font-size:17px;
+        line-height:1.8;
+        ">
+
+        Hệ thống sử dụng mô hình
+        <b>Support Vector Machine (SVM)</b>
+        để dự đoán loài hoa Iris dựa trên
+        4 đặc trưng hình thái của hoa.
+
+        </p>
+
+        <div class="badge">
+        🤖 Machine Learning
+        </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+st.markdown(
     '</div>',
     unsafe_allow_html=True
 )
 
 
-# =========================
-# ẢNH HERO
-# =========================
+# =========================================================
+# FEATURES
+# =========================================================
+
 st.markdown(
-    '<div class="hero-box">',
+    '<div class="section-title">🌿 4 đặc trưng đầu vào</div>',
     unsafe_allow_html=True
 )
 
-st.image(
-    str(BASE_DIR / "hero.png.jpg"),
-    width=350
-)
+f1, f2, f3, f4 = st.columns(4)
+
+features = [
+    ("🌱", "Sepal Length", "Chiều dài đài hoa"),
+    ("🍃", "Sepal Width", "Chiều rộng đài hoa"),
+    ("🌸", "Petal Length", "Chiều dài cánh hoa"),
+    ("🌺", "Petal Width", "Chiều rộng cánh hoa"),
+]
+
+for col, item in zip(
+    [f1, f2, f3, f4],
+    features
+):
+
+    with col:
+
+        st.markdown(
+            f"""
+            <div class="feature">
+
+                <div class="feature-icon">
+                    {item[0]}
+                </div>
+
+                <div class="feature-title">
+                    {item[1]}
+                </div>
+
+                <div class="feature-text">
+                    {item[2]}
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+# =========================================================
+# INPUT
+# =========================================================
 
 st.markdown(
-    '</div>',
+    '<div class="section-title">📋 Nhập thông số hoa</div>',
     unsafe_allow_html=True
 )
 
-
-# =========================
-# GIỚI THIỆU
-# =========================
-st.markdown("""
-<div class="card">
-
-### 🤖 Mô hình SVM
-
-Hệ thống sử dụng thuật toán **Support Vector Machine (SVM)**
-để phân loại hoa Iris dựa trên 4 đặc trưng:
-
-- 🌱 Sepal Length
-- 🌱 Sepal Width
-- 🌸 Petal Length
-- 🌸 Petal Width
-
-</div>
-""", unsafe_allow_html=True)
-
-
-# =========================
-# NHẬP DỮ LIỆU
-# =========================
-st.subheader("📋 Nhập thông số hoa Iris")
+st.markdown(
+    '<div class="input-card">',
+    unsafe_allow_html=True
+)
 
 col1, col2 = st.columns(2)
 
 with col1:
 
     sepal_length = st.number_input(
-        "Sepal Length (cm)",
+        "🌱 Sepal Length (cm)",
         min_value=0.0,
         max_value=10.0,
         value=5.1,
@@ -226,17 +581,18 @@ with col1:
     )
 
     petal_length = st.number_input(
-        "Petal Length (cm)",
+        "🌸 Petal Length (cm)",
         min_value=0.0,
         max_value=10.0,
         value=1.4,
         step=0.1
     )
 
+
 with col2:
 
     sepal_width = st.number_input(
-        "Sepal Width (cm)",
+        "🍃 Sepal Width (cm)",
         min_value=0.0,
         max_value=10.0,
         value=3.5,
@@ -244,21 +600,24 @@ with col2:
     )
 
     petal_width = st.number_input(
-        "Petal Width (cm)",
+        "🌺 Petal Width (cm)",
         min_value=0.0,
         max_value=10.0,
         value=0.2,
         step=0.1
     )
 
+st.markdown("</div>", unsafe_allow_html=True)
 
-# =========================
-# NÚT DỰ ĐOÁN
-# =========================
+
+# =========================================================
+# PREDICTION BUTTON
+# =========================================================
+
 st.markdown("")
 
 if st.button(
-    "🔍 DỰ ĐOÁN LOÀI HOA",
+    "🔍  DỰ ĐOÁN LOÀI HOA",
     use_container_width=True
 ):
 
@@ -277,127 +636,175 @@ if st.button(
         ]
     )
 
-
     # =========================
     # DỰ ĐOÁN
     # =========================
+
     prediction = model.predict(data)[0]
 
+    prediction = str(prediction)
+
 
     # =========================
-    # THÔNG TIN TỪNG LOÀI
+    # THÔNG TIN HOA
     # =========================
+
     flower_info = {
 
         "Iris-setosa": {
             "name": "Iris Setosa",
             "emoji": "🌼",
-            "image": "setosa.jpg"
+            "image": "setosa.jpg",
+            "description":
+                "Loài Iris có cánh hoa nhỏ và thường có màu tím nhạt."
         },
 
         "Iris-versicolor": {
             "name": "Iris Versicolor",
             "emoji": "🌷",
-            "image": "versicolor.jpg"
+            "image": "versicolor.jpg",
+            "description":
+                "Loài Iris có kích thước trung bình với màu sắc đặc trưng."
         },
 
         "Iris-virginica": {
             "name": "Iris Virginica",
             "emoji": "🌺",
-            "image": "virginica.jpg"
+            "image": "virginica.jpg",
+            "description":
+                "Loài Iris có cánh hoa lớn hơn và thường có kích thước nổi bật."
         }
+
     }
 
 
-    # =========================
-    # LẤY THÔNG TIN KẾT QUẢ
-    # =========================
     flower = flower_info.get(
         prediction,
         {
             "name": prediction,
             "emoji": "🌸",
-            "image": "hero.png.jpg"
+            "image": "hero.png.jpg",
+            "description":
+                "Mô hình đã đưa ra kết quả dự đoán."
         }
     )
 
 
-    # =========================
-    # HIỂN THỊ KẾT QUẢ
-    # =========================
+    # =====================================================
+    # RESULT
+    # =====================================================
+
     st.markdown(
-        """
-        <div class="result-box">
-        <div style="font-size: 24px;">
-        🌸 KẾT QUẢ DỰ ĐOÁN
-        </div>
+        f"""
+        <div class="result-card">
+
+            <div class="result-label">
+                🌸 KẾT QUẢ DỰ ĐOÁN
+            </div>
+
+            <div style="font-size:65px;">
+                {flower["emoji"]}
+            </div>
+
+            <div class="result-name">
+                {flower["name"]}
+            </div>
+
+            <div class="result-description">
+                {flower["description"]}
+            </div>
+
+            <div class="badge">
+                🤖 Dự đoán bởi mô hình SVM
+            </div>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
-    # =========================
-    # HÌNH ẢNH + TÊN
-    # =========================
-    col_img, col_text = st.columns([1, 1])
+    # =====================================================
+    # IMAGE RESULT
+    # =====================================================
 
-    with col_img:
+    image_path = BASE_DIR / flower["image"]
 
-        image_path = BASE_DIR / flower["image"]
-
-        if image_path.exists():
-
-            st.image(
-                str(image_path),
-                width=250
-            )
-
-        else:
-
-            st.warning(
-                f"Không tìm thấy ảnh: {flower['image']}"
-            )
-
-
-    with col_text:
+    if image_path.exists():
 
         st.markdown(
-            f"""
-            <div style="
-                text-align:center;
-                padding-top:60px;
-            ">
-
-            <div style="font-size:55px;">
-            {flower["emoji"]}
-            </div>
-
-            <div class="result-name">
-            {flower["name"]}
-            </div>
-
-            <p style="
-                font-size:17px;
-                color:#777;
-            ">
-            Mô hình SVM dự đoán
-            </p>
-
-            </div>
-            """,
+            "<div style='height:20px'></div>",
             unsafe_allow_html=True
         )
 
+        col_left, col_center, col_right = st.columns(
+            [1, 1.4, 1]
+        )
 
-# =========================
+        with col_center:
+
+            st.image(
+                str(image_path),
+                use_container_width=True
+            )
+
+
+    # =====================================================
+    # PROBABILITY
+    # =====================================================
+
+    if hasattr(model, "predict_proba"):
+
+        try:
+
+            probabilities = model.predict_proba(data)[0]
+
+            classes = model.classes_
+
+            prob_df = pd.DataFrame({
+                "Loài hoa": classes,
+                "Xác suất": probabilities
+            })
+
+            prob_df["Xác suất"] = (
+                prob_df["Xác suất"] * 100
+            ).round(2)
+
+            st.markdown(
+                '<div class="section-title">'
+                '📊 Xác suất dự đoán'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            st.dataframe(
+                prob_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        except Exception:
+            pass
+
+
+# =========================================================
 # FOOTER
-# =========================
+# =========================================================
+
 st.markdown(
     """
-    <div class="info">
-    SVM Iris Classification • Đồ án DA1
-    • Python + Scikit-learn + Streamlit
+    <div class="footer">
+
+        🌸 <b>Iris SVM Classification</b>
+
+        <br>
+
+        Đồ án DA1 • Python • Scikit-learn • Streamlit
+
+        <br><br>
+
+        Made with ❤️
+
     </div>
     """,
     unsafe_allow_html=True
